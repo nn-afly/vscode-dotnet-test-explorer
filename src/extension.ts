@@ -9,7 +9,7 @@ import { GotoTest } from "./gotoTest";
 import { Logger } from "./logger";
 import { MessagesController } from "./messages";
 import { Problems } from "./problems";
-import { TestCommands } from "./testCommands";
+import { ITestCommand, TestCommands } from "./testCommands";
 import { TestNode } from "./testNode";
 import { TestResultsFile } from "./testResultsFile";
 import { TestStatusCodeLensProvider } from "./testStatusCodeLensProvider";
@@ -55,20 +55,24 @@ export function activate(context: vscode.ExtensionContext) {
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand("dotnet-test-explorer.runAllTests", () => {
-        testCommands.runAllTests(false);
+        testCommands.runAllTests({ testName: "", skipBuild: false });
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand("dotnet-test-explorer.runAllTestsNoBuild", () => {
+        testCommands.runAllTests({ testName: "", skipBuild: true });
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand("dotnet-test-explorer.runTest", (test: TestNode) => {
-        testCommands.runTest(test, false);
+        testCommands.runTest({ testName: test.fullName, skipBuild: false });
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand("dotnet-test-explorer.runTestNoBuild", (test: TestNode) => {
-        testCommands.runTest(test, true);
+        testCommands.runTest({ testName: test.fullName, skipBuild: true });
     }));
 
     context.subscriptions.push(vscode.commands.registerTextEditorCommand("dotnet-test-explorer.runTestInContext", (editor: vscode.TextEditor) => {
-        findTestInContext.find(editor.document, editor.selection.start.line).then((testName) => {
-            testCommands.runTestByName(testName, false);
+        findTestInContext.find(editor.document, editor.selection.start.line).then((test) => {
+            testCommands.runTestByName({ testName: test, skipBuild: false });
         });
     }));
 

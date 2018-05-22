@@ -59,7 +59,7 @@
         }
       },
       {
-        "command": "dotnet-test-explorer.runAllTests(No Build)",
+        "command": "dotnet-test-explorer.runAllTestsNoBuild",
         "title": "Run All Tests (No Build)",
         "icon": {
           "light": "resources/light/run.png",
@@ -106,6 +106,11 @@
           "command": "dotnet-test-explorer.runAllTests",
           "when": "view == dotnetTestExplorer",
           "group": "navigation@0"
+        },
+        {
+          "command": "dotnet-test-explorer.runAllTestsNoBuild",
+          "when": "view == dotnetTestExplorer",
+          "group": "navigation@2"
         }
       ],
       "view/item/context": [
@@ -230,6 +235,11 @@
         "command": "dotnet-test-explorer.runAllTests",
         "key": "alt+r alt+a",
         "mac": "alt+r alt+a"
+      },
+      {
+        "command": "dotnet-test-explorer.runAllTestsNoBuild",
+        "key": "alt+r alt+n",
+        "mac": "alt+r alt+n"
       }
     ]
   },

@@ -11,12 +11,16 @@ import { TestNode } from "./testNode";
 import { TestResultsFile } from "./testResultsFile";
 import { Utility } from "./utility";
 
+export interface ITestCommand {
+    testName: string;
+    skipBuild: boolean;
+}
+
 export class TestCommands {
     private onNewTestDiscoveryEmitter = new EventEmitter<string[]>();
     private onTestRunEmitter = new EventEmitter<string>();
     private testDirectoryPath: string;
-    private lastRunTestName: string = null;
-    private lastSkipBuild: boolean = false;
+    private lastTestCommand: ITestCommand;
 
     constructor(
         private resultsFile: TestResultsFile,
@@ -29,8 +33,8 @@ export class TestCommands {
      * This method can cause the project to rebuild or try
      * to do a restore, so it can be very slow.
      */
-    public runAllTests(skipBuild: boolean): void {
-        this.runTestCommand("", skipBuild);
+    public runAllTests(testCommand: ITestCommand): void {
+        this.runTestCommand(testCommand);
         AppInsightsClient.sendEvent("runAllTests");
     }
 
@@ -41,18 +45,18 @@ export class TestCommands {
      * This method can cause the project to rebuild or try
      * to do a restore, so it can be very slow.
      */
-    public runTest(test: TestNode, skipBuild: boolean): void {
-        this.runTestByName(test.fullName, skipBuild);
+    public runTest(testCommand: ITestCommand): void {
+        this.runTestByName(testCommand);
     }
 
-    public runTestByName(testName: string, skipBuild: boolean): void {
-        this.runTestCommand(testName, skipBuild);
+    public runTestByName(testCommand: ITestCommand): void {
+        this.runTestCommand(testCommand);
         AppInsightsClient.sendEvent("runTest");
     }
 
     public rerunLastCommand(): void {
-        if (this.lastRunTestName != null) {
-            this.runTestCommand(this.lastRunTestName, this.lastSkipBuild);
+        if (this.lastTestCommand != null) {
+            this.runTestCommand(this.lastTestCommand);
             AppInsightsClient.sendEvent("rerunLastCommand");
         }
     }
@@ -85,21 +89,23 @@ export class TestCommands {
         return this.onTestRunEmitter.event;
     }
 
-    private runTestCommand(testName: string, skipBuild: boolean): void {
+    private runTestCommand(testCommand: ITestCommand): void {
         let command = `dotnet test${this.getDotNetTestOptions()}${this.outputTestResults()}`;
-
-        if (testName && testName.length) {
-            command = command + ` --filter FullyQualifiedName~${testName.replace(/\(.*\)/g, "")}`;
+        if (testCommand.testName && testCommand.testName.length) {
+            command = command + ` --filter FullyQualifiedName~${testCommand.testName.replace(/\(.*\)/g, "")}`;
         }
 
-        if (skipBuild) {
+        if (testCommand.skipBuild) {
             command = command + ` --no-build`;
         }
 
-        this.lastRunTestName = testName;
-        this.lastSkipBuild = skipBuild;
+        this.lastTestCommand = {
+            testName: testCommand.testName,
+            skipBuild: testCommand.skipBuild,
+        };
+
         Logger.Log(`Executing ${command} in ${this.testDirectoryPath}`);
-        this.onTestRunEmitter.fire(testName);
+        this.onTestRunEmitter.fire(testCommand.testName);
         Executor.runInTerminal(command, this.testDirectoryPath);
     }
 
