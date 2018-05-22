@@ -16,6 +16,7 @@ export class TestCommands {
     private onTestRunEmitter = new EventEmitter<string>();
     private testDirectoryPath: string;
     private lastRunTestName: string = null;
+    private lastSkipBuild: boolean = false;
 
     constructor(
         private resultsFile: TestResultsFile,
@@ -28,8 +29,8 @@ export class TestCommands {
      * This method can cause the project to rebuild or try
      * to do a restore, so it can be very slow.
      */
-    public runAllTests(): void {
-        this.runTestCommand("");
+    public runAllTests(skipBuild: boolean): void {
+        this.runTestCommand("", skipBuild);
         AppInsightsClient.sendEvent("runAllTests");
     }
 
@@ -40,18 +41,18 @@ export class TestCommands {
      * This method can cause the project to rebuild or try
      * to do a restore, so it can be very slow.
      */
-    public runTest(test: TestNode): void {
-        this.runTestByName(test.fullName);
+    public runTest(test: TestNode, skipBuild: boolean): void {
+        this.runTestByName(test.fullName, skipBuild);
     }
 
-    public runTestByName(testName: string): void {
-        this.runTestCommand(testName);
+    public runTestByName(testName: string, skipBuild: boolean): void {
+        this.runTestCommand(testName, skipBuild);
         AppInsightsClient.sendEvent("runTest");
     }
 
     public rerunLastCommand(): void {
         if (this.lastRunTestName != null) {
-            this.runTestCommand(this.lastRunTestName);
+            this.runTestCommand(this.lastRunTestName, this.lastSkipBuild);
             AppInsightsClient.sendEvent("rerunLastCommand");
         }
     }
@@ -84,14 +85,19 @@ export class TestCommands {
         return this.onTestRunEmitter.event;
     }
 
-    private runTestCommand(testName: string): void {
+    private runTestCommand(testName: string, skipBuild: boolean): void {
         let command = `dotnet test${this.getDotNetTestOptions()}${this.outputTestResults()}`;
 
         if (testName && testName.length) {
             command = command + ` --filter FullyQualifiedName~${testName.replace(/\(.*\)/g, "")}`;
         }
 
+        if (skipBuild) {
+            command = command + ` --no-build`;
+        }
+
         this.lastRunTestName = testName;
+        this.lastSkipBuild = skipBuild;
         Logger.Log(`Executing ${command} in ${this.testDirectoryPath}`);
         this.onTestRunEmitter.fire(testName);
         Executor.runInTerminal(command, this.testDirectoryPath);

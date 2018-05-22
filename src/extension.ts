@@ -55,16 +55,20 @@ export function activate(context: vscode.ExtensionContext) {
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand("dotnet-test-explorer.runAllTests", () => {
-        testCommands.runAllTests();
+        testCommands.runAllTests(false);
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand("dotnet-test-explorer.runTest", (test: TestNode) => {
-        testCommands.runTest(test);
+        testCommands.runTest(test, false);
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand("dotnet-test-explorer.runTestNoBuild", (test: TestNode) => {
+        testCommands.runTest(test, true);
     }));
 
     context.subscriptions.push(vscode.commands.registerTextEditorCommand("dotnet-test-explorer.runTestInContext", (editor: vscode.TextEditor) => {
-        findTestInContext.find(editor.document, editor.selection.start.line).then( (testName) => {
-            testCommands.runTestByName(testName);
+        findTestInContext.find(editor.document, editor.selection.start.line).then((testName) => {
+            testCommands.runTestByName(testName, false);
         });
     }));
 

@@ -59,8 +59,24 @@
         }
       },
       {
+        "command": "dotnet-test-explorer.runAllTests(No Build)",
+        "title": "Run All Tests (No Build)",
+        "icon": {
+          "light": "resources/light/run.png",
+          "dark": "resources/dark/run.png"
+        }
+      },
+      {
         "command": "dotnet-test-explorer.runTest",
         "title": "Run Test",
+        "icon": {
+          "light": "resources/light/run.svg",
+          "dark": "resources/dark/run.svg"
+        }
+      },
+      {
+        "command": "dotnet-test-explorer.runTestNoBuild",
+        "title": "Run Test (No build)",
         "icon": {
           "light": "resources/light/run.svg",
           "dark": "resources/dark/run.svg"
@@ -107,6 +123,11 @@
           "command": "dotnet-test-explorer.gotoTest",
           "when": "viewItem == test",
           "group": "dotnetTestExplorer@1"
+        },
+        {
+          "command": "dotnet-test-explorer.runTestNoBuild",
+          "when": "view == dotnetTestExplorer",
+          "group": "dotnetTestExplorer@2"
         }
       ],
       "editor/context": [
